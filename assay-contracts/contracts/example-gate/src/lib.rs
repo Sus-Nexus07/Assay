@@ -29,8 +29,22 @@ use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, 
 // different ABI than the one deployed. `Safety` is not named below: it
 // arrives as the client's return type.
 use assay_gate::{
-    check_policy, PolicyViolation, SafetyRegistryClient, MECH_AUTH_REVOCABLE, MECH_CLAWBACK_ENABLED,
+    check_policy, PolicyViolation, SafetyRegistryClient, MECH_AUTH_REQUIRED, MECH_AUTH_REVOCABLE,
+    MECH_BLOCKLISTED, MECH_CLAWBACK_ENABLED, MECH_DOMAIN_UNVERIFIED, MECH_FLAGS_LOCKED,
 };
+
+/// The mask of all mechanic bits defined by Assay (bits 0 through 5:
+/// `MECH_AUTH_REQUIRED..=MECH_BLOCKLISTED`).
+///
+/// Any bit outside this mask is not a recognized mechanic. A constructor
+/// accepting bits outside this mask would allow typos (such as `0x60` meant as `0x06`)
+/// that silently fail to check the intended powers.
+pub const VALID_MECHANICS_MASK: u32 = MECH_AUTH_REQUIRED
+    | MECH_AUTH_REVOCABLE
+    | MECH_CLAWBACK_ENABLED
+    | MECH_FLAGS_LOCKED
+    | MECH_DOMAIN_UNVERIFIED
+    | MECH_BLOCKLISTED;
 
 /// Mechanics this gate refuses outright, whatever the severity number says.
 ///
@@ -153,6 +167,9 @@ impl ExampleGate {
         refused_mechanics: u32,
     ) -> Result<(), Error> {
         if max_severity > 4 {
+            return Err(Error::InvalidPolicy);
+        }
+        if refused_mechanics & !VALID_MECHANICS_MASK != 0 {
             return Err(Error::InvalidPolicy);
         }
 

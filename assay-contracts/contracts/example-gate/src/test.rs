@@ -528,3 +528,89 @@ fn deposit_extends_ttl_to_network_max() {
     assert_eq!(instance_ttl(&f.env, &f.gate), max);
     assert_eq!(balance_ttl(&f.env, &f.gate, &asset, &user), max);
 }
+
+// ---------------------------------------------------------------------------
+// Policy validation: refused_mechanics validation (#561)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn constructor_validates_refused_mechanics() {
+    let f = setup();
+
+    // 1. Valid mask: succeeds and sets the configured policy
+    let valid_gate_id = f.env.register(
+        ExampleGate,
+        (
+            f.registry.address.clone(),
+            DEFAULT_MAX_SEVERITY,
+            DEFAULT_MAX_ATTESTATION_AGE,
+            MECH_AUTH_REVOCABLE | MECH_CLAWBACK_ENABLED,
+        ),
+    );
+    let valid_gate = ExampleGateClient::new(&f.env, &valid_gate_id);
+    assert_eq!(
+        valid_gate.policy().refused_mechanics,
+        MECH_AUTH_REVOCABLE | MECH_CLAWBACK_ENABLED
+    );
+
+    // 2. 0 is valid: succeeds and sets refused_mechanics = 0
+    let zero_gate_id = f.env.register(
+        ExampleGate,
+        (
+            f.registry.address.clone(),
+            DEFAULT_MAX_SEVERITY,
+            DEFAULT_MAX_ATTESTATION_AGE,
+            0u32,
+        ),
+    );
+    let zero_gate = ExampleGateClient::new(&f.env, &zero_gate_id);
+    assert_eq!(zero_gate.policy().refused_mechanics, 0);
+
+    // All known mechanic bits (VALID_MECHANICS_MASK) are accepted
+    let all_gate_id = f.env.register(
+        ExampleGate,
+        (
+            f.registry.address.clone(),
+            DEFAULT_MAX_SEVERITY,
+            DEFAULT_MAX_ATTESTATION_AGE,
+            VALID_MECHANICS_MASK,
+        ),
+    );
+    let all_gate = ExampleGateClient::new(&f.env, &all_gate_id);
+    assert_eq!(all_gate.policy().refused_mechanics, VALID_MECHANICS_MASK);
+
+    // 3. Unknown bits rejected with InvalidPolicy
+    let res_typo = ExampleGate::__constructor(
+        f.env.clone(),
+        f.registry.address.clone(),
+        DEFAULT_MAX_SEVERITY,
+        DEFAULT_MAX_ATTESTATION_AGE,
+        0x60, // typo for 0x06 (bit 6 set, outside bits 0..=5)
+    );
+    assert_eq!(res_typo, Err(Error::InvalidPolicy));
+
+    let res_high_bit = ExampleGate::__constructor(
+        f.env.clone(),
+        f.registry.address.clone(),
+        DEFAULT_MAX_SEVERITY,
+        DEFAULT_MAX_ATTESTATION_AGE,
+        1 << 6,
+    );
+    assert_eq!(res_high_bit, Err(Error::InvalidPolicy));
+}
+
+#[test]
+#[should_panic]
+fn constructor_rejects_unknown_mechanic_bits_on_register() {
+    let f = setup();
+    // 0x60 has bit 6 set, which is outside the mechanic table (MECH_AUTH_REQUIRED..=MECH_BLOCKLISTED).
+    f.env.register(
+        ExampleGate,
+        (
+            f.registry.address.clone(),
+            DEFAULT_MAX_SEVERITY,
+            DEFAULT_MAX_ATTESTATION_AGE,
+            0x60u32,
+        ),
+    );
+}
