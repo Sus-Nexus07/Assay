@@ -41,16 +41,6 @@ func (s *Subject) horizonAccountURL(account string) string {
 	return s.horizonBaseURL() + "/accounts/" + url.PathEscape(account)
 }
 
-// horizonAssetURL is a package-level helper that delegates to s.horizonAssetURL(a).
-func horizonAssetURL(s *Subject, a Asset) string {
-	return s.horizonAssetURL(a)
-}
-
-// horizonAccountURL is a package-level helper that delegates to s.horizonAccountURL(account).
-func horizonAccountURL(s *Subject, account string) string {
-	return s.horizonAccountURL(account)
-}
-
 // flagSummary renders the issuer flag set in Horizon's own vocabulary.
 func flagSummary(f horizon.Flags) string {
 	return fmt.Sprintf(
