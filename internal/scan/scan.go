@@ -374,7 +374,12 @@ func (s *Scanner) Subject(ctx context.Context, a mechanics.Asset) (*mechanics.Su
 	if err != nil {
 		return nil, err
 	}
-	sub := &mechanics.Subject{Asset: a, ScannedAt: s.now(), Network: network}
+	sub := &mechanics.Subject{
+		Asset:      a,
+		ScannedAt:  s.now(),
+		Network:    network,
+		HorizonURL: s.Horizon.BaseURL,
+	}
 	timeout := s.fetchTimeout()
 
 	statCtx, cancelStat := context.WithTimeout(ctx, timeout)

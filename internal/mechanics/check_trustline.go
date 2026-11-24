@@ -3,9 +3,6 @@ package mechanics
 import (
 	"context"
 	"fmt"
-	"net/url"
-
-	"github.com/use-assay/assay/internal/horizon"
 )
 
 // TrustlineCheck reports the actual flags on a specific holder's trustline.
@@ -48,13 +45,15 @@ func (TrustlineCheck) Inputs() []string {
 	return []string{
 		"Asset",
 		"Holder",
+		"HolderAttemptedAt",
+		"HolderFetchedAt",
+		"HolderLedger",
 		"HolderMuxed",
 		"HolderMuxedID",
 		"HolderTrustline",
 		"HolderTrustlineErr",
-		"HolderFetchedAt",
-		"HolderAttemptedAt",
-		"HolderLedger",
+		"HorizonURL",
+		"Network",
 	}
 }
 
@@ -71,7 +70,7 @@ func (c TrustlineCheck) Run(_ context.Context, s *Subject) (Finding, error) {
 		return f, nil
 	}
 
-	holderURL := horizon.DefaultURL + "/accounts/" + url.PathEscape(s.Holder)
+	holderURL := s.horizonAccountURL(s.Holder)
 
 	// A muxed (M…) holder has no ledger entry of its own: the lookup is made
 	// against the base G… account it resolves to. Saying so in the evidence —

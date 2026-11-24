@@ -231,7 +231,12 @@ type Finding struct {
 // twenty seconds after the Horizon one must not report Horizon's instant.
 type Subject struct {
 	Asset Asset
-	Stat  *horizon.AssetStat
+	// HorizonURL is the base URL of the Horizon instance that answered this
+	// scan (e.g. "https://horizon.stellar.org" or "https://horizon-testnet.stellar.org").
+	// When empty, Horizon evidence URLs fall back to the DefaultURL for the
+	// Subject's Network.
+	HorizonURL string
+	Stat       *horizon.AssetStat
 	// StatFetchedAt is when Horizon answered the /assets lookup.
 	StatFetchedAt time.Time
 	// StatLedger is the ledger sequence Horizon reported for the /assets query.
