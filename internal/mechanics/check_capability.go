@@ -28,14 +28,12 @@ func (CapabilityCheck) Describe() string {
 func (CapabilityCheck) Inputs() []string {
 	return []string{
 		"Asset",
-		"HorizonURL",
-		"Issuer",
-		"IssuerFetchedAt",
-		"IssuerLedger",
-		"Network",
 		"Stat",
 		"StatFetchedAt",
 		"StatLedger",
+		"Issuer",
+		"IssuerFetchedAt",
+		"IssuerLedger",
 	}
 }
 
@@ -77,7 +75,7 @@ func (c CapabilityCheck) Run(_ context.Context, s *Subject) (Finding, error) {
 		f.Undetermined = true
 		f.Evidence = append(f.Evidence, Evidence{
 			Source:         "horizon",
-			URL:            s.horizonAssetURL(s.Asset),
+			URL:            horizonAssetURL(s.Asset),
 			Claim:          "issuer flags: " + flagSummary(s.Stat.Flags),
 			RetrievedAt:    NewCanonicalTime(s.StatFetchedAt),
 			LatestLedger:   s.statLedger(),
@@ -86,7 +84,7 @@ func (c CapabilityCheck) Run(_ context.Context, s *Subject) (Finding, error) {
 		if s.Issuer != nil {
 			f.Evidence = append(f.Evidence, Evidence{
 				Source:         "horizon/account",
-				URL:            s.horizonAccountURL(s.Asset.Issuer),
+				URL:            horizonAccountURL(s.Asset.Issuer),
 				Claim:          "issuer account flags: " + flagSummary(s.Issuer.Flags),
 				RetrievedAt:    NewCanonicalTime(s.IssuerFetchedAt),
 				LatestLedger:   s.issuerLedger(),
@@ -147,7 +145,7 @@ func (c CapabilityCheck) Run(_ context.Context, s *Subject) (Finding, error) {
 	assetLedger := s.statLedger()
 	f.Evidence = append(f.Evidence, Evidence{
 		Source:         "horizon",
-		URL:            s.horizonAssetURL(s.Asset),
+		URL:            horizonAssetURL(s.Asset),
 		Claim:          "issuer flags: " + flagSummary(flags),
 		RetrievedAt:    NewCanonicalTime(s.StatFetchedAt),
 		LatestLedger:   assetLedger,
@@ -162,7 +160,7 @@ func (c CapabilityCheck) Run(_ context.Context, s *Subject) (Finding, error) {
 		acctLedger := s.issuerLedger()
 		f.Evidence = append(f.Evidence, Evidence{
 			Source:         "horizon/account",
-			URL:            s.horizonAccountURL(s.Asset.Issuer),
+			URL:            horizonAccountURL(s.Asset.Issuer),
 			Claim:          "issuer account flags: " + flagSummary(s.Issuer.Flags),
 			RetrievedAt:    NewCanonicalTime(s.IssuerFetchedAt),
 			LatestLedger:   acctLedger,

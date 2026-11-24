@@ -145,10 +145,9 @@ func richSubject() *mechanics.Subject {
 		HolderAttemptedAt: testAt,
 		HolderLedger:      100,
 
-		ScannedAt:  testAt,
-		FetchedAt:  testAt,
-		Network:    horizon.PublicNet,
-		HorizonURL: horizon.DefaultURL,
+		ScannedAt: testAt,
+		FetchedAt: testAt,
+		Network:   horizon.PublicNet,
 	}
 }
 
@@ -181,10 +180,9 @@ func degradedSubject() *mechanics.Subject {
 		HolderTrustlineErr: "horizon: get: status 429",
 		HolderAttemptedAt:  testAt,
 
-		ScannedAt:  testAt,
-		FetchedAt:  testAt,
-		Network:    horizon.PublicNet,
-		HorizonURL: horizon.DefaultURL,
+		ScannedAt: testAt,
+		FetchedAt: testAt,
+		Network:   horizon.PublicNet,
 	}
 }
 
